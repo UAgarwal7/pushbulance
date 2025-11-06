@@ -2,6 +2,9 @@ const int buzzerPin = 12;
 const int led1 = 0;
 const int led2 = 1;
 
+unsigned long previousMillis = 0;
+int currentLED = 0;
+
 void setup() {
   pinMode(buzzerPin, OUTPUT);
   pinMode(led1, OUTPUT);
@@ -9,21 +12,32 @@ void setup() {
 }
 
 void loop() {
-  
-  for (int freq = 400; freq <= 1000; freq += 10) {
+  for (int freq = 500; freq <= 1200; freq += 5) {
     tone(buzzerPin, freq);
     delay(2);
+    updateLights();
   }
-  for (int freq = 1000; freq >= 400; freq -= 10) {
+
+  for (int freq = 1200; freq >= 500; freq -= 5) {
     tone(buzzerPin, freq);
     delay(2);
+    updateLights();
   }
+}
 
-  digitalWrite(led1, HIGH);
-  digitalWrite(led2, LOW);
-  delay(1000);
+void updateLights() {
+  unsigned long currentMillis = millis();
 
-  digitalWrite(led1, LOW);
-  digitalWrite(led2, HIGH);
-  delay(1000);
+  if (currentMillis - previousMillis >= 1000) {
+    previousMillis = currentMillis;
+    currentLED = !currentLED;
+
+    if (currentLED == 0) {
+      digitalWrite(led1, HIGH);
+      digitalWrite(led2, LOW);
+    } else {
+      digitalWrite(led1, LOW);
+      digitalWrite(led2, HIGH);
+    }
+  }
 }
