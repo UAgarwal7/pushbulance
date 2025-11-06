@@ -41,7 +41,7 @@ def follow_line():
 
             print(remaining_contours == gray_threshold_contours)
         except:
-            bestContour = None
+            bestContour = None;
 
         """
         # Take the highest (yAxis) contours. Filters out some false positives
