@@ -1,3 +1,9 @@
+"""
+
+TESTING, DO NOT USE
+
+"""
+
 import cv2
 import numpy as np
 import imutils
@@ -42,7 +48,7 @@ def follow_line():
             bestContour = sorted_contours[0] if len(sorted_contours) > 0 else None
             second_contour = sorted_contours[1] if len(sorted_contours) > 1 else None
 
-            print(bestContour == second_contour)
+            # print(bestContour == second_contour)
         except:
             bestContour = None;
             second_contour = None;

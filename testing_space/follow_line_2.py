@@ -1,5 +1,6 @@
 """
-I'm testing cv2 with the mac built-in camera to see what the code does and whatnot
+
+TESTING, DO NOT USE
 
 """
 
