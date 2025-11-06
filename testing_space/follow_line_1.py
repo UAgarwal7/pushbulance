@@ -69,9 +69,13 @@ def follow_line(sock):
 
         # Take the highest (yAxis) contours. Filters out some false positives
         try:
-            bestContour = max(gray_threshold_contours, key=lambda c: cv2.boundingRect(c)[3])
+            sorted_contours = sorted(gray_threshold_contours, key=lambda c: cv2.boundingRect(c)[3], reverse=True)
+            bestContour = sorted_contours[0] if len(sorted_contours) > 0 else None
+            second_contour = sorted_contours[1] if len(sorted_contours) > 1 else None
+
         except:
             bestContour = None
+            second_contour = None
 
         # Get frame center
         center_of_frame = np.array([frame.shape[1] / 2, frame.shape[0] / 2], int)
@@ -79,7 +83,7 @@ def follow_line(sock):
         try:
             if bestContour is not None:
                 cv2.putText(frame, "Line: FOUND", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                cv2.drawContours(frame, [bestContour], -1, (0, 255, 0), 2)
+                cv2.drawContours(frame, [bestContour, second_contour], -1, (0, 255, 0), 2)
 
                 M = cv2.moments(bestContour)
                 center_of_contour = np.array([int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])], int)

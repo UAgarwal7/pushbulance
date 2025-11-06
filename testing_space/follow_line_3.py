@@ -1,3 +1,9 @@
+"""
+
+TESTING, DO NOT USE
+
+"""
+
 import cv2
 import numpy as np
 import imutils
@@ -34,14 +40,18 @@ def follow_line():
         # Detect contours
         gray_threshold_contours, _ = cv2.findContours(gray_threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         try:
-            bestContour = max(gray_threshold_contours, key=lambda c: cv2.boundingRect(c)[3])
+            sorted_contours = sorted(gray_threshold_contours, key=lambda c: cv2.boundingRect(c)[3], reverse=True)
 
             # remaining_contours = [c for c in gray_threshold_contours if not np.all(c == bestContour)]
-            remaining_contours = tuple(item for item in gray_threshold_contours if item != bestContour)
+            # remaining_contours = tuple(item for item in gray_threshold_contours if item != bestContour)
 
-            print(remaining_contours == gray_threshold_contours)
+            bestContour = sorted_contours[0] if len(sorted_contours) > 0 else None
+            second_contour = sorted_contours[1] if len(sorted_contours) > 1 else None
+
+            # print(bestContour == second_contour)
         except:
             bestContour = None;
+            second_contour = None;
 
         """
         # Take the highest (yAxis) contours. Filters out some false positives
@@ -74,7 +84,7 @@ def follow_line():
             
             if bestContour is not None: # Single Line Following
                 cv2.putText(frame, "Line: FOUND", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                cv2.drawContours(frame, [bestContour], -1, (0, 255, 0), 2)
+                cv2.drawContours(frame, [bestContour, secondBestContour], -1, (0, 255, 0), 2)
 
                 M = cv2.moments(bestContour)
                 center_of_contour = np.array([int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])], int)
@@ -96,7 +106,7 @@ def follow_line():
         cv2.line(frame, (center_of_frame[0], 0), (center_of_frame[0], frame.shape[0]), (0, 255, 255), 2)
         """
         # Display the current video frame
-        cv2.drawContours(frame, gray_threshold_contours, -1, (0, 255, 0), 2)
+        cv2.drawContours(frame, [bestContour, second_contour], -1, (0, 255, 0), 2)
         cv2.imshow("Current Line-Following Output", frame)
         key = cv2.waitKey(1)
         if key == ord('q'):
