@@ -99,8 +99,11 @@ def follow_line(sock):
 
                 # NEED TO FIGURE OUT THE SIGNS FOR DIRECTIONS
 
+                # Calculate the center of the two contours
+                center_of_countours = (center_one + center_two) / 2
+
                 # Calculate CTE (Cross-Track Error) between detected line and frame center
-                cte_x = center_of_frame[0] - center_of_contour[0]
+                cte_x = center_of_frame[0] - center_of_countours # DOES THIS WORK?
                 cv2.putText(frame, "Cross Track Error (x): " + str(cte_x), (0, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255))
                 print(f"X-axis CTE: {cte_x}")
                 sock.sendall((str(cte_x) + "\n").encode("utf-8"))
