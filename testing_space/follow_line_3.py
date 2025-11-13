@@ -53,8 +53,9 @@ def follow_line():
             bestContour = None;
             second_contour = None;
 
-        """
+        
         # Take the highest (yAxis) contours. Filters out some false positives
+        """
         try:
             bestContour = max(gray_threshold_contours, key=lambda c: cv2.boundingRect(c)[3])
             # gray_threshold_contours.remove(bestContour)
@@ -62,7 +63,7 @@ def follow_line():
         except:
             bestContour = None
             # second_contour = None
-
+            """
         # Get frame center
         center_of_frame = np.array([frame.shape[1] / 2, frame.shape[0] / 2], int)
 
@@ -75,16 +76,24 @@ def follow_line():
 
                 M = cv2.moments(bestContour)
                 center_of_contour = np.array([int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])], int)
+                center_one = center_of_contour[0]
+
+                M2 = cv2.moments(second_contour)
+                center_of_contour_two = np.array([int(M2['m10'] / M2['m00']), int(M2['m01'] / M2['m00'])], int)
+                center_two = center_of_contour_two[0]
+
+                # Calculate the center of the two contours
+                center_of_countours = (center_one + center_two) / 2
 
                 # Calculate CTE (Cross-Track Error) between detected line and frame center
-                cte_x = center_of_frame[0] - center_of_contour[0]
+                cte_x = center_of_frame[0] - center_of_countours
                 cv2.putText(frame, "Cross Track Error (x): " + str(cte_x), (0, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255))
                 print(f"X-axis CTE: {cte_x}")
                 # sock.sendall((str(cte_x) + "\n").encode("utf-8"))
             
             if bestContour is not None: # Single Line Following
                 cv2.putText(frame, "Line: FOUND", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                cv2.drawContours(frame, [bestContour, secondBestContour], -1, (0, 255, 0), 2)
+                cv2.drawContours(frame, [bestContour, second_contour], -1, (0, 255, 0), 2)
 
                 M = cv2.moments(bestContour)
                 center_of_contour = np.array([int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])], int)
@@ -104,7 +113,7 @@ def follow_line():
         # Draw the x-axis median line and frame center
         cv2.circle(frame, (center_of_frame[0], center_of_frame[1]), 7, (255, 255, 255), -1)
         cv2.line(frame, (center_of_frame[0], 0), (center_of_frame[0], frame.shape[0]), (0, 255, 255), 2)
-        """
+        
         # Display the current video frame
         cv2.drawContours(frame, [bestContour, second_contour], -1, (0, 255, 0), 2)
         cv2.imshow("Current Line-Following Output", frame)

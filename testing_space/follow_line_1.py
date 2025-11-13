@@ -1,3 +1,7 @@
+"""
+WORKING MODEL
+"""
+
 import cv2
 import socket
 import numpy as np
@@ -87,9 +91,17 @@ def follow_line(sock):
 
                 M = cv2.moments(bestContour)
                 center_of_contour = np.array([int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])], int)
+                center_one = center_of_contour[0]
+
+                M2 = cv2.moments(second_contour)
+                center_of_contour_two = np.array([int(M2['m10'] / M2['m00']), int(M2['m01'] / M2['m00'])], int)
+                center_two = center_of_contour_two[0]
+
+                # Calculate the center of the two contours
+                center_of_countours = (center_one + center_two) / 2
 
                 # Calculate CTE (Cross-Track Error) between detected line and frame center
-                cte_x = center_of_frame[0] - center_of_contour[0]
+                cte_x = center_of_frame[0] - center_of_countours
                 cv2.putText(frame, "Cross Track Error (x): " + str(cte_x), (0, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255))
                 print(f"X-axis CTE: {cte_x}")
                 sock.sendall((str(cte_x) + "\n").encode("utf-8"))
