@@ -1,5 +1,5 @@
 
-int topspeed = 255;
+int topspeed = 100;
 
 #define FORWARD 'w'
 #define LEFT 'a'
