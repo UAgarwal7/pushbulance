@@ -71,15 +71,21 @@ def follow_line(sock):
         # Detect contours
         gray_threshold_contours, _ = cv2.findContours(gray_threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
+
         # Take the highest (yAxis) contours. Filters out some false positives
         try:
-            sorted_contours = sorted(gray_threshold_contours, key=lambda c: cv2.boundingRect(c)[3], reverse=True)
+            sorted_contours = sorted(gray_threshold_contours, key=lambda c: cv2.arcLength(c, False), reverse=True)
             bestContour = sorted_contours[0] if len(sorted_contours) > 0 else None
             second_contour = sorted_contours[1] if len(sorted_contours) > 1 else None
 
         except:
             bestContour = None
             second_contour = None
+        
+        L1 = cv2.arcLength(bestContour, False)
+        L2 = cv2.arcLength(second_contour, False)
+
+        one_line = L2 < 0.5 * L1
 
         # Get frame center
         center_of_frame = np.array([frame.shape[1] / 2, frame.shape[0] / 2], int)
@@ -89,19 +95,25 @@ def follow_line(sock):
                 cv2.putText(frame, "Line: FOUND", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                 cv2.drawContours(frame, [bestContour, second_contour], -1, (0, 255, 0), 2)
 
-                M = cv2.moments(bestContour)
-                center_of_contour = np.array([int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])], int)
-                center_one = center_of_contour[0]
+                
 
-                M2 = cv2.moments(second_contour)
-                center_of_contour_two = np.array([int(M2['m10'] / M2['m00']), int(M2['m01'] / M2['m00'])], int)
-                center_two = center_of_contour_two[0]
+                if (one_line):
+                    M = cv2.moments(bestContour)
+                    center_of_contour = np.array([int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])], int)
+                    cte_x = center_of_frame[0] - center_of_contour[0]
+                else:
+                    M = cv2.moments(bestContour)
+                    center_of_contour = np.array([int(M['m10'] / M['m00']), int(M['m01'] / M['m00'])], int)
+                    center_one = center_of_contour[0]
 
-                # Calculate the center of the two contours
-                center_of_countours = (center_one + center_two) / 2
+                    M2 = cv2.moments(second_contour)
+                    center_of_contour_two = np.array([int(M2['m10'] / M2['m00']), int(M2['m01'] / M2['m00'])], int)
+                    center_two = center_of_contour_two[0]
 
-                # Calculate CTE (Cross-Track Error) between detected line and frame center
-                cte_x = center_of_frame[0] - center_of_countours
+                    center_of_contours = (center_one + center_two) / 2
+
+                    cte_x = center_of_frame[0] - center_of_contours
+
                 cv2.putText(frame, "Cross Track Error (x): " + str(cte_x), (0, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255))
                 print(f"X-axis CTE: {cte_x}")
                 sock.sendall((str(cte_x) + "\n").encode("utf-8"))
