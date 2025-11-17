@@ -110,7 +110,7 @@ def follow_line(sock):
                     center_of_contour_two = np.array([int(M2['m10'] / M2['m00']), int(M2['m01'] / M2['m00'])], int)
                     center_two = center_of_contour_two[0]
 
-                    center_of_contours = (center_one + center_two) / 2
+                    center_of_contours = (center_one + center_two) / 2 # EDGE CASE: 3 contours between 
 
                     cte_x = center_of_frame[0] - center_of_contours
 
