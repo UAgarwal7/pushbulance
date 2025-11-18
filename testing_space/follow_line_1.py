@@ -85,7 +85,7 @@ def follow_line(sock):
         L1 = cv2.arcLength(bestContour, False)
         L2 = cv2.arcLength(second_contour, False)
 
-        one_line = L2 < 0.5 * L1
+        one_line = L2 < 0.3 * L1
 
         # Get frame center
         center_of_frame = np.array([frame.shape[1] / 2, frame.shape[0] / 2], int)
