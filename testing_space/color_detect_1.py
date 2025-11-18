@@ -95,26 +95,26 @@ def follow_line(sock):
         # COLOR PROCESSING START
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        lower_red1 = np.array([0, 120, 70])
-        upper_red1 = np.array([10, 255, 255])
+        lower_purp1 = np.array([0, 70, 70])
+        upper_purp1 = np.array([25, 255, 255])
 
         # WHAT SHOULD I MAKE THE COLORS?
 
-        red_mask = cv2.inRange(hsv, lower_red1, upper_red1)
+        red_mask = cv2.inRange(hsv, lower_purp1, upper_purp1)
 
-        red_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        purp_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        sees_red = False
+        sees_purp = False
         sees_green = False
         sees_blue = False
 
-        if len(red_contours) > 0:
-            sees_red = True
+        if len(purp_contours) > 0:
+            sees_purp = True
 
 
 
         try:
-            if sees_red:
+            if sees_purp:
                 sock.sendall(("STOP" + "\n").encode("utf-8"))
             elif sees_blue:
                 sock.sendall(("STOP" + "\n").encode("utf-8"))
@@ -159,6 +159,8 @@ def follow_line(sock):
 
         # Display the current video frame
         cv2.imshow("Current Line-Following Output", frame)
+        cv2.imshow("Mask", red_mask)
+
         key = cv2.waitKey(1)
         if key == ord('q'):
             break
