@@ -1,0 +1,123 @@
+int topspeed = 125;
+
+#define FORWARD 'w'
+#define LEFT 'a'
+#define RIGHT 'd'
+#define BACK 's'
+#define STOP 'x'
+
+// --- Motor Control ---
+void Set_Speed(int Left, int Right) {
+  if (Left > topspeed) Left = topspeed;
+  if (Right > topspeed) Right = topspeed;
+  
+  analogWrite(5, Left);    // Left wheels speed
+  analogWrite(6, Right);   // Right wheels speed
+}
+
+void forward() {
+  digitalWrite(7, HIGH); digitalWrite(8, LOW);
+  digitalWrite(9, LOW);  digitalWrite(11, HIGH);
+}
+
+void back() {
+  digitalWrite(7, LOW); digitalWrite(8, HIGH);
+  digitalWrite(9, HIGH); digitalWrite(11, LOW);
+}
+
+void left() {
+  digitalWrite(7, LOW); digitalWrite(8, HIGH);
+  digitalWrite(9, LOW); digitalWrite(11, HIGH);
+}
+
+void right() {
+  digitalWrite(7, HIGH); digitalWrite(8, LOW);
+  digitalWrite(9, HIGH); digitalWrite(11, LOW);
+}
+
+void stopcar() {
+  analogWrite(5, 0);
+  analogWrite(6, 0);
+}
+
+// --- Siren (LED + Buzzer) ---
+const int buzzerPin = 12;
+const int led1 = 2;
+const int led2 = 3;
+
+unsigned long previousMillisLED = 0;
+unsigned long previousMillisTone = 0;
+
+int currentLED = 0;
+int freq = 500;
+int step = 5;
+
+// --- Setup ---
+void setup() {
+  // Motors
+  pinMode(5, OUTPUT); pinMode(7, OUTPUT); pinMode(8, OUTPUT);
+  pinMode(6, OUTPUT); pinMode(9, OUTPUT); pinMode(11, OUTPUT);
+
+  // Siren
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(led1, OUTPUT);
+  pinMode(led2, OUTPUT);
+
+  Serial.begin(115200);
+  stopcar();
+}
+
+// --- Direction Processing ---
+void process_direction(char direction) {
+  switch(direction) {
+    case FORWARD: forward(); break;
+    case LEFT:    left();    break;
+    case RIGHT:   right();   break;
+    case BACK:    back();    break;
+    case STOP:    stopcar(); break;
+  }
+}
+
+// --- Loop ---
+void loop() {
+  unsigned long currentMillis = millis();
+
+  // --- Handle Serial Commands ---
+  while (Serial.available()) {
+    String pid_command = Serial.readStringUntil('\n');
+    pid_command.trim();
+
+    if (pid_command == "STOP") {
+      stopcar();
+      continue;
+    }
+
+    int firstCommaIndex = pid_command.indexOf(',');
+    int secondCommaIndex = pid_command.indexOf(',', firstCommaIndex + 1);
+
+    if (firstCommaIndex > 0 && secondCommaIndex > firstCommaIndex) {
+      int leftSpeed = pid_command.substring(0, firstCommaIndex).toInt();
+      int rightSpeed = pid_command.substring(firstCommaIndex + 1, secondCommaIndex).toInt();
+      char direction = pid_command.substring(secondCommaIndex + 1)[0];
+
+      process_direction(direction);
+      Set_Speed(leftSpeed, rightSpeed);
+    }
+  }
+
+  // --- LED toggle every 1000 ms ---
+  if (currentMillis - previousMillisLED >= 1000) {
+    previousMillisLED = currentMillis;
+    currentLED = !currentLED;
+    digitalWrite(led1, currentLED ? HIGH : LOW);
+    digitalWrite(led2, currentLED ? LOW : HIGH);
+  }
+
+  // --- Buzzer sweep every 2 ms ---
+  if (currentMillis - previousMillisTone >= 2) {
+    previousMillisTone = currentMillis;
+    tone(buzzerPin, freq);
+    freq += step;
+    if (freq >= 1200 || freq <= 500) step = -step;
+  }
+}
