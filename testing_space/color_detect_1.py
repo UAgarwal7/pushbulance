@@ -1,5 +1,5 @@
 """
-WORKING MODEL
+CODE STEMMING FROM FOLLOW_LINE_1.PY AS OF NOVEMBER 19th @ 9:20
 """
 
 import cv2
@@ -51,8 +51,9 @@ def follow_line(sock):
         if not ret:
             print("Couldn't read frame. Killing program.")
 
-        # Blur the frame to reduce noise
         frame = cv2.GaussianBlur(frame, (5, 5), 0)
+        # LINE FOLLOWING VIDEO PROCESSING + CTE START
+        # Blur the frame to reduce noise
         gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
         # Get black pixels (these values depend on room light)
@@ -89,9 +90,37 @@ def follow_line(sock):
 
         # Get frame center
         center_of_frame = np.array([frame.shape[1] / 2, frame.shape[0] / 2], int)
+        # LINE FOLLOWING VIDEO PROCESSING + CTE END
+
+        # COLOR PROCESSING START
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+        lower_purp1 = np.array([0, 70, 70])
+        upper_purp1 = np.array([25, 255, 255])
+
+        # WHAT SHOULD I MAKE THE COLORS?
+
+        red_mask = cv2.inRange(hsv, lower_purp1, upper_purp1)
+
+        purp_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        sees_purp = False
+        sees_green = False
+        sees_blue = False
+
+        if len(purp_contours) > 0:
+            sees_purp = True
+
+
 
         try:
-            if bestContour is not None:
+            if sees_purp:
+                sock.sendall(("STOP" + "\n").encode("utf-8"))
+            elif sees_blue:
+                sock.sendall(("STOP" + "\n").encode("utf-8"))
+            elif sees_green:
+                sock.sendall(("STOP" + "\n").encode("utf-8"))
+            elif bestContour is not None:
                 cv2.putText(frame, "Line: FOUND", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                 cv2.drawContours(frame, [bestContour, second_contour], -1, (0, 255, 0), 2)
 
@@ -130,6 +159,8 @@ def follow_line(sock):
 
         # Display the current video frame
         cv2.imshow("Current Line-Following Output", frame)
+        cv2.imshow("Mask", red_mask)
+
         key = cv2.waitKey(1)
         if key == ord('q'):
             break
@@ -151,4 +182,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
