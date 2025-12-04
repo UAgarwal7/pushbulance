@@ -105,8 +105,6 @@ def follow_line(sock):
         purp_contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         sees_purp = False
-        sees_green = False
-        sees_blue = False
 
         if len(purp_contours) > 0:
             sees_purp = True
@@ -115,10 +113,6 @@ def follow_line(sock):
 
         try:
             if sees_purp:
-                sock.sendall(("STOP" + "\n").encode("utf-8"))
-            elif sees_blue:
-                sock.sendall(("STOP" + "\n").encode("utf-8"))
-            elif sees_green:
                 sock.sendall(("STOP" + "\n").encode("utf-8"))
             elif bestContour is not None:
                 cv2.putText(frame, "Line: FOUND", (0, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
